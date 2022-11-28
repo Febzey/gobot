@@ -1,6 +1,9 @@
 package events
 
-import "github.com/Tnze/go-mc/chat"
+import (
+	"github.com/Tnze/go-mc/chat"
+	pk "github.com/Tnze/go-mc/net/packet"
+)
 
 type DisconnectErr struct {
 	Reason chat.Message
@@ -10,7 +13,11 @@ func (d DisconnectErr) Error() string {
 	return "disconnect: " + d.Reason.String()
 }
 
-func (e *Events) OnDisconnect(reason chat.Message) error {
-	//return the discconect reason as a string
-	return DisconnectErr{Reason: reason}
+func (e *Events) handleDisconnect(p pk.Packet) error {
+	var reason chat.Message
+	if err := p.Scan(&reason); err != nil {
+		return DisconnectErr{Reason: reason}
+	}
+
+	return nil
 }

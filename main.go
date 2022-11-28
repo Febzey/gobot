@@ -1,124 +1,107 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"log"
+	"os"
 
 	"github.com/Tnze/go-mc/bot"
-	"github.com/Tnze/go-mc/bot/basic"
-	"github.com/Tnze/go-mc/chat"
 	_ "github.com/Tnze/go-mc/data/lang/en-us"
-	"github.com/Tnze/go-mc/data/packetid"
-	pk "github.com/Tnze/go-mc/net/packet"
 
 	"github.com/febzey/gobot/pkg/events"
-	GMMAuth "github.com/maxsupermanhd/go-mc-ms-auth"
 )
 
 var (
 	client *bot.Client
-	player *basic.Player
 
-	address = flag.String("address", "play.mcvpg.org", "Server address")
+	address = flag.String("address", "localhost:65443", "Server address")
 )
 
-func authenticate() (bot.Auth, error) {
-	mauth, er := GMMAuth.GetMCcredentials("./auth.cache", "88650e7e-efee-4857-b9a9-cf580a00ef43")
-	if er != nil {
-		return mauth, er
+type Config struct {
+	useEvents   bool
+	useCommands bool
+}
+
+type Bot struct {
+	Client *bot.Client
+	Logger *log.Logger
+	Config *Config
+}
+
+func newBot() *Bot {
+	client := bot.NewClient()
+
+	b := &Bot{
+		Client: client,
+		Logger: log.New(os.Stdout, "gobot", log.LstdFlags),
+		Config: &Config{
+			useEvents:   true,
+			useCommands: true,
+		},
 	}
-	log.Print("Authenticated as ", mauth.Name, " (", mauth.UUID, ")")
-	return mauth, nil
+
+	events.RegisterEvents(client)
+
+	return b
+}
+
+func (b *Bot) Connect(host string) error {
+	err := b.Client.JoinServer(host)
+	if err != nil {
+		return err
+	}
+
+	b.Logger.Println("Login success")
+
+	return nil
 }
 
 func main() {
 	flag.Parse()
 
-	mauth, err := authenticate()
+	ibot := newBot()
+
+	mauth, err := Authenticate()
 	if err != nil {
-		log.Fatal(err)
+		ibot.Logger.Fatal(err)
 	}
 
-	client = bot.NewClient()
-	client.Auth = mauth
+	ibot.Client.Auth = mauth
 
-	events := events.Events{}
-	events.RegisterEvents(client)
-
-	player = basic.NewPlayer(client, basic.DefaultSettings)
-	events.Player = player
-
-	err = client.JoinServer(*address)
+	err = ibot.Connect(*address)
 	if err != nil {
-		log.Fatal(err)
+		ibot.Logger.Fatal(err)
 	}
-	log.Println("Login success")
 
-	client.Events.AddListener(
-		bot.PacketHandler{
-			Priority: 0,
-			ID:       packetid.ClientboundKeepAlive,
-			F: func(p pk.Packet) error {
-
-				return nil
-			},
-		},
-	)
-
-	//JoinGame
-	// err = client.HandleGame()
-	// if err != nil {
-	// 	log.Fatalf("game error: %v", err)
-	// }
-
-	for {
-		if err = client.HandleGame(); err == nil {
-			panic("HandleGame never return nil")
-		}
-
-		if err2 := new(bot.PacketHandlerError); errors.As(err, err2) {
-			if err := new(DisconnectErr); errors.As(err2, err) {
-				log.Print("Disconnect: ", err.Reason)
-				return
-			} else {
-				// print and ignore the error
-				log.Print(err2)
-			}
-		} else {
-			log.Fatal(err)
-		}
+	err = ibot.Client.HandleGame()
+	if err != nil {
+		ibot.Logger.Fatalf("game error: %v", err)
 	}
 
 }
 
-type Node struct {
-}
-
-type DisconnectErr struct {
-	Reason chat.Message
-}
-
-func (d DisconnectErr) Error() string {
-	return "disconnect: " + d.Reason.String()
-}
-
-// handlers := map[int32]func(pk.Packet) error{
-// 	pktid.ClientboundSystemChat: onSystemMsg,
-// 	pktid.ClientboundPlayerChat: onMessage,
+// for {
+// 	if err := client.HandleGame(); err == nil {
+// 		panic("HandleGame never return nil")
+// 	}
+// 	if err2 := new(bot.PacketHandlerError); errors.As(err, err2) {
+// 		if err := new(DisconnectErr); errors.As(err2, err) {
+// 			log.Print("Disconnect: ", err.Reason)
+// 			return
+// 		} else {
+// 			log.Print(err2)
+// 		}
+// 	} else {
+// 		log.Fatal(err)
+// 	}
+// }
+// type Node struct {
 // }
 
-// for id, handler := range handlers {
-// 	id := id
-// 	handler := handler
+// type DisconnectErr struct {
+// 	Reason chat.Message
+// }
 
-// 	client.Events.AddListener(
-// 		bot.PacketHandler{
-// 			Priority: 0,
-// 			ID:       id,
-// 			F: func(p pk.Packet) error {
-// 				return handler(p)
-// 			},
-// 		},
-// 	)
+// func (d DisconnectErr) Error() string {
+// 	return "disconnect: " + d.Reason.String()
 // }

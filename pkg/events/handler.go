@@ -2,20 +2,41 @@ package events
 
 import (
 	"github.com/Tnze/go-mc/bot"
-	"github.com/Tnze/go-mc/bot/basic"
+	pktid "github.com/Tnze/go-mc/data/packetid"
+	pk "github.com/Tnze/go-mc/net/packet"
 )
 
 type Events struct {
-	Player *basic.Player
+	Client *bot.Client
 }
 
-func (e *Events) RegisterEvents(client *bot.Client) {
+func RegisterEvents(client *bot.Client) {
 
-	basic.EventsListener{
-		GameStart:  e.OnGameStart,
-		ChatMsg:    e.OnChatMsg,
-		SystemMsg:  e.OnSystemMsg,
-		Disconnect: e.OnDisconnect,
-		Death:      e.OnDeath,
-	}.Attach(client)
+	e := &Events{
+		Client: client,
+	}
+
+	handlers := map[int32]func(pk.Packet) error{
+		pktid.ClientboundLogin:      e.OnLogin,
+		pktid.ClientboundSystemChat: e.OnSystemMsg,
+		pktid.ClientboundPlayerChat: e.onPlayerMsg,
+		pktid.ClientboundSetHealth:  e.handleHealth,
+		pktid.ClientboundDisconnect: e.handleDisconnect,
+		pktid.ClientboundKeepAlive:  e.handleKeepAlive,
+	}
+
+	for id, handler := range handlers {
+		id := id
+		handler := handler
+
+		client.Events.AddListener(
+			bot.PacketHandler{
+				Priority: 64,
+				ID:       id,
+				F: func(p pk.Packet) error {
+					return handler(p)
+				},
+			},
+		)
+	}
 }

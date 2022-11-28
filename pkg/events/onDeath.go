@@ -2,18 +2,34 @@ package events
 
 import (
 	"log"
-	"time"
+
+	"github.com/Tnze/go-mc/data/packetid"
+	pk "github.com/Tnze/go-mc/net/packet"
 )
 
-func (e *Events) OnDeath() error {
-	log.Println("Died and Respawned")
-	// If we exclude Respawn(...) then the player won't press the "Respawn" button upon death
-	go func() {
-		time.Sleep(time.Second * 5)
-		err := e.Player.Respawn()
+func (e *Events) handleHealth(p pk.Packet) error {
+
+	var health pk.Float
+	var food pk.VarInt
+	var foodSaturation pk.Float
+
+	if err := p.Scan(&health, &food, &foodSaturation); err != nil {
+		return err
+	}
+
+	if health == 0 {
+		log.Println("Bot is dead")
+
+		const PerformRespawn = 0
+
+		err := e.Client.Conn.WritePacket(pk.Marshal(
+			int32(packetid.ServerboundClientCommand),
+			pk.VarInt(PerformRespawn),
+		))
 		if err != nil {
-			log.Print(err)
+			return err
 		}
-	}()
+	}
+
 	return nil
 }
