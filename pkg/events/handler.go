@@ -16,7 +16,13 @@ func RegisterEvents(client *bot.Client) {
 		Client: client,
 	}
 
-	handlers := map[int32]func(pk.Packet) error{
+	//make a type that is a constant number
+	//register the event with the packet id
+	//register the event with the function
+
+	// create a map with the name poop
+
+	handlers := map[pktid.ClientboundPacketID]func(pk.Packet) error{
 		pktid.ClientboundLogin:      e.OnLogin,
 		pktid.ClientboundSystemChat: e.OnSystemMsg,
 		pktid.ClientboundPlayerChat: e.onPlayerMsg,

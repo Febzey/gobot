@@ -14,7 +14,7 @@ import (
 var (
 	client *bot.Client
 
-	address = flag.String("address", "localhost:65443", "Server address")
+	address = flag.String("address", "localhost:21656", "Server address")
 )
 
 type Config struct {
@@ -29,7 +29,7 @@ type Bot struct {
 }
 
 func newBot() *Bot {
-	client := bot.NewClient()
+	client = bot.NewClient()
 
 	b := &Bot{
 		Client: client,

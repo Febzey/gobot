@@ -2,46 +2,49 @@ package events
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/Tnze/go-mc/chat"
 	pk "github.com/Tnze/go-mc/net/packet"
 )
 
-//create object to hold message and username
+// create object to hold message and username
 type User struct {
 	Username string
 	Message  string
 }
 
-func handleMessages(user User) error {
-	username := user.Username
-	message := user.Message
+// func handleMessages(user User) error {
+// 	username := user.Username
+// 	message := user.Message
 
-	log.Println("username:", username, "message:", message)
-	return nil
-}
+// 	log.Println("username:", username, "message:", message)
+// 	return nil
+// }
 
-func filterMessages(msg string) error {
-	return nil
-}
+// func filterMessages(msg string) error {
+// 	return nil
+// }
 
-//ClientboundPlayerChat
-func (e *Events) onPlayerMsg(p pk.Packet) error {
+// ClientboundPlayerChat
+// func (e *Events) onPlayerMsg(p pk.Packet) error {
 
-	var (
-		msg chat.Message
-		pos pk.Byte
-	)
+// 	var (
+// 		msg           chat.Message
+// 		pos           pk.Byte
+// 		signedContent chat.Message
+// 		mtype         pk.VarInt
+// 		senderUUID    pk.UUID
+// 		senderName    chat.Message
+// 		hasTeamName   pk.Boolean
+// 		timestamp     pk.Long
+// 		salt          pk.Long
+// 		SigLength     pk.VarInt
+// 		mSig          pk.Byte
 
-	if err := p.Scan(&msg, &pos); err != nil {
-		return err
-	}
+// 	)
 
-	fmt.Println(msg)
-
-	return nil
-}
+// 	return nil
+// }
 
 func (e *Events) OnSystemMsg(p pk.Packet) error {
 
