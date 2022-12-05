@@ -7,6 +7,7 @@ import (
 
 	"github.com/Tnze/go-mc/bot"
 	_ "github.com/Tnze/go-mc/data/lang/en-us"
+	"github.com/Tnze/go-mc/data/packetid"
 
 	"github.com/febzey/gobot/pkg/events"
 )
@@ -14,7 +15,7 @@ import (
 var (
 	client *bot.Client
 
-	address = flag.String("address", "localhost:21656", "Server address")
+	address = flag.String("address", "localhost:53994", "Server address")
 )
 
 type Config struct {
@@ -26,6 +27,12 @@ type Bot struct {
 	Client *bot.Client
 	Logger *log.Logger
 	Config *Config
+
+	Events *events.Events
+
+	PlayerInfo
+	WorldInfo
+	Settings *Settings
 }
 
 func newBot() *Bot {
@@ -38,9 +45,20 @@ func newBot() *Bot {
 			useEvents:   true,
 			useCommands: true,
 		},
+		Events: &events.Events{
+			Client: client,
+		},
+		Settings: &DefaultSettings,
 	}
 
-	events.RegisterEvents(client)
+	b.Client.Events.AddListener(
+		bot.PacketHandler{Priority: 0, ID: packetid.ClientboundLogin, F: b.Events.OnLogin},
+		bot.PacketHandler{Priority: 64, ID: packetid.ClientboundSystemChat, F: b.Events.OnSystemMsg},
+		bot.PacketHandler{Priority: 64, ID: packetid.ClientboundPlayerChat, F: b.Events.OnPlayerMsg},
+		bot.PacketHandler{Priority: 64, ID: packetid.ClientboundSetHealth, F: b.Events.HandleHealth},
+		bot.PacketHandler{Priority: 64, ID: packetid.ClientboundDisconnect, F: b.Events.HandleDisconnect},
+		bot.PacketHandler{Priority: 64, ID: packetid.ClientboundKeepAlive, F: b.Events.HandleKeepAlive},
+	)
 
 	return b
 }
@@ -79,29 +97,3 @@ func main() {
 	}
 
 }
-
-// for {
-// 	if err := client.HandleGame(); err == nil {
-// 		panic("HandleGame never return nil")
-// 	}
-// 	if err2 := new(bot.PacketHandlerError); errors.As(err, err2) {
-// 		if err := new(DisconnectErr); errors.As(err2, err) {
-// 			log.Print("Disconnect: ", err.Reason)
-// 			return
-// 		} else {
-// 			log.Print(err2)
-// 		}
-// 	} else {
-// 		log.Fatal(err)
-// 	}
-// }
-// type Node struct {
-// }
-
-// type DisconnectErr struct {
-// 	Reason chat.Message
-// }
-
-// func (d DisconnectErr) Error() string {
-// 	return "disconnect: " + d.Reason.String()
-// }

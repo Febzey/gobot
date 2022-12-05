@@ -26,25 +26,21 @@ type User struct {
 // }
 
 // ClientboundPlayerChat
-// func (e *Events) onPlayerMsg(p pk.Packet) error {
+func (e *Events) OnPlayerMsg(p pk.Packet) error {
 
-// 	var (
-// 		msg           chat.Message
-// 		pos           pk.Byte
-// 		signedContent chat.Message
-// 		mtype         pk.VarInt
-// 		senderUUID    pk.UUID
-// 		senderName    chat.Message
-// 		hasTeamName   pk.Boolean
-// 		timestamp     pk.Long
-// 		salt          pk.Long
-// 		SigLength     pk.VarInt
-// 		mSig          pk.Byte
+	var (
+		SignedMessage chat.Message
+		Unsigned      pk.Boolean
+	)
 
-// 	)
+	if err := p.Scan(&SignedMessage, &Unsigned); err != nil {
+		return err
+	}
 
-// 	return nil
-// }
+	fmt.Println(SignedMessage)
+
+	return nil
+}
 
 func (e *Events) OnSystemMsg(p pk.Packet) error {
 

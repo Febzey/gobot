@@ -6,7 +6,7 @@ import (
 	pk "github.com/Tnze/go-mc/net/packet"
 )
 
-func (e *Events) OnLogin(_ pk.Packet) error {
+func (e *Events) OnLogin(p pk.Packet) error {
 	log.Println("Game start")
 	return nil
 }

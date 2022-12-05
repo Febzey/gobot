@@ -7,7 +7,7 @@ import (
 	pk "github.com/Tnze/go-mc/net/packet"
 )
 
-func (e *Events) handleHealth(p pk.Packet) error {
+func (e *Events) HandleHealth(p pk.Packet) error {
 
 	var health pk.Float
 	var food pk.VarInt

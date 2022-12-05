@@ -13,7 +13,7 @@ func (d DisconnectErr) Error() string {
 	return "disconnect: " + d.Reason.String()
 }
 
-func (e *Events) handleDisconnect(p pk.Packet) error {
+func (e *Events) HandleDisconnect(p pk.Packet) error {
 	var reason chat.Message
 	if err := p.Scan(&reason); err != nil {
 		return DisconnectErr{Reason: reason}

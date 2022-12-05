@@ -5,7 +5,7 @@ import (
 	pk "github.com/Tnze/go-mc/net/packet"
 )
 
-func (e *Events) handleKeepAlive(p pk.Packet) error {
+func (e *Events) HandleKeepAlive(p pk.Packet) error {
 	var id pk.Long
 	if err := p.Scan(&id); err != nil {
 		return err
